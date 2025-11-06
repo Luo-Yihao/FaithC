@@ -30,7 +30,7 @@ This design ensures:
 
 ![Compare](imgs/WUKONGCOMPARE.png) 
 
-Faithful Contouring thus provides both a practical mesh processing pipeline and a standardized tokenized format (FCT) that can be directly integrated into learning-based 3D reconstruction and generative modeling. Check [here](imgs/Comparision_FCT.pdf) for detailed comparisons with traditional SDF+MC pipelines.
+Faithful Contouring thus provides both a practical mesh processing pipeline and a standardized tokenized format (FCT) that can be directly integrated into learning-based 3D reconstruction and generative modeling. Check [here](imgs/Comparision_FCT.pdf) for detailed comparisons with traditional SDF+MC pipelines. VAE reconstruction results can be found [here](imgs/FCT_VAEComp.pdf).
 
 ## How It Works
 
@@ -157,8 +157,8 @@ final_mesh.export("reconstructed_mesh.glb")
 
 ## Roadmap
 
-- [x] Advanced Geometry Processing Pipeline
-- [x] Faithful Contour Tokens based VAE
+- [ ] Algorithm Code Release
+- [ ] Faithful Contour Tokens based VAE Release
 - [ ] Diffusion Model Release
 
 ## License
