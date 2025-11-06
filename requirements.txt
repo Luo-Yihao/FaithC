@@ -1,0 +1,8 @@
+torch # cuda version requires torch==1.13.1+cu117
+trimesh
+numpy
+scipy
+pytorch3d
+
+# Optional: For simplifying meshes
+pyfqmr

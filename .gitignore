@@ -1,0 +1,13 @@
+src/faithcontour.egg-info/*
+src/faithcontour.egg-info
+
+build
+build/*
+*.pyc
+
+output/*
+assets/*.obj
+assets/*.glb
+assets/*.ply
+assets/*.stl
+*.so
