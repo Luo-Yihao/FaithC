@@ -6,7 +6,7 @@
 This official library provides a CUDA-accelerated **Encoder/Decoder pipeline** to transform arbitrary meshes into compact **Faithful Contour Tokens (FCTs)**, together with an efficient remeshing algorithm for precise reconstruction.
 
 
-[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/) [![PyTorch Version](https://img.shields.io/badge/pytorch-1.12+-orange.svg)](https://pytorch.org/) [![arXiv](https://img.shields.io/badge/arXiv-xxx.xxx-b31b1b.svg)](https://arxiv.org/abs/xxx)  [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/) [![PyTorch Version](https://img.shields.io/badge/pytorch-1.12+-orange.svg)](https://pytorch.org/) [![arXiv](https://img.shields.io/badge/arXiv-2511.04029-b31b1b.svg)](https://arxiv.org/abs/2511.04029)  [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 
 
 [🔒 Source Code Not Fully Released Yet](src/)
