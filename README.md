@@ -1,7 +1,8 @@
 
 # Faithful Contouring
-![Teaser](imgs/Cover_FCT.png)
+🤬 ***Enough with SDF + Marching Cubes? 📐Time to bring back faithful geometry!***
 
+![Teaser](imgs/Cover_FCT.png)
 **Faithful Contouring**: A high-fidelity, near-lossless 3D mesh representation method that eliminates the need for distance-field conversion and iso-surface extraction.  
 This official library provides a CUDA-accelerated **Encoder/Decoder pipeline** to transform arbitrary meshes into compact **Faithful Contour Tokens (FCTs)**, together with an efficient remeshing algorithm for precise reconstruction.
 
@@ -44,7 +45,7 @@ The pipeline consists of two main components: an encoder and a decoder.
     - Outputs the two tensors that constitute the Faithful Contour Tokens。
 
 2.  **Decoder (`FCT_decoder`)**:
-    - Takes the `active_voxels_indices` and `FCT_features` tensors as input.
+    - Takes the `active_voxels_indices` and `FCT_features` tokens as input.
     - Reconstructs the absolute world-space positions of all primal and dual feature points.
     - Establishes connectivity between primal and dual points based on the primal-dual grid structure.
     - Generates triangular faces by connecting each primal point to its valid dual neighbors, perfectly restoring the original mesh topology.
@@ -69,27 +70,44 @@ Encoding produces two main tensors:
 
 This project requires a system with an NVIDIA GPU, CUDA Toolkit, and a C++ compiler.
 
-#### 1. Prerequisites: Install PyTorch
+### Method 1: Pre-compiled Wheel (Recommended)
 
-First, you must install a version of PyTorch that matches your system's CUDA Toolkit. Please visit the [PyTorch official website](https://pytorch.org/get-started/locally/) to get the correct command for your specific setup. For example, for CUDA 11.8:
-```bash
-pip3 install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu118](https://download.pytorch.org/whl/cu118)
-```
-*(You may also need to install a compatible version of PyTorch3D if you use the filtering functions.)*
-
-#### 2. Clone and Install `faithcontour`
-
-Once PyTorch is installed, clone this repository and install the library using pip.
+For quick installation without compilation:
 
 ```bash
+
+# Install PyTorch first (make sure it matches your CUDA version)
+# Example for CUDA 11.8
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
 # Clone the repository
 git clone https://github.com/Luo-Yihao/FaithC.git
 cd FaithC
 
-# Install the library in editable mode
-# This will compile the C++/CUDA code and install the Python package.
+# Install the pre-compiled wheel directly
+pip install dist/faithcontour-0.1.0-cp310-cp310-linux_x86_64.whl
+```
+
+**Wheel Requirements**:
+- Python 3.10
+- Linux x86_64 systems
+- CUDA-capable NVIDIA GPUs
+
+### Method 2: Build from Source
+
+If the pre-compiled wheel doesn't work for your system:
+(Get the source code first! For earlier access, contact the author.)
+```bash
+# Put the source code in a folder named `src/faithcontour/`
+# Install the library in editable mode (compiles C++/CUDA code)
 pip install -e .
 ```
+
+**Build Requirements**:
+- NVIDIA GPU with CUDA support
+- CUDA Toolkit 11.0+
+- C++ compiler (GCC 7+)
+- PyTorch 1.12+
 
 ## Usage
 
@@ -157,6 +175,7 @@ final_mesh.export("reconstructed_mesh.glb")
 
 ## Roadmap
 
+- [x] Wheel Package for Linux (Python 3.10, CUDA 11.8) Release
 - [ ] Algorithm Code Release
 - [ ] Faithful Contour Tokens based VAE Release
 - [ ] Diffusion Model Release

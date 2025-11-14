@@ -77,6 +77,14 @@ def main():
         default=False,
         help="Whether to simplify the output mesh using quadric edge collapse decimation."
     )
+    parser.add_argument(
+        "--clamp_anchors",
+        type=bool,
+        default=True,
+        help="Whether to clamp anchor points to prevent ill-posed solutions. "
+             "True ensures stability by constraining anchors within voxel bounds, "
+             "False allows unconstrained optimization for potentially higher accuracy."
+    )
     args = parser.parse_args()
 
     # Ensure resolution is a power of two
@@ -146,7 +154,7 @@ def main():
             solver_weights=solver_weights,
             device=device,
             output_mode='dict',
-            clamp_anchors=True # To avoid ill-posed solutions
+            clamp_anchors=args.clamp_anchors  # Control anchor clamping via command line argument
         )
     print(f"FCT encoder time: {time.time()-time0:.3f}s")
     for k, v in FCT_dict.items():

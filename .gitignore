@@ -1,5 +1,6 @@
 src/faithcontour.egg-info/*
 src/faithcontour.egg-info
+src/faithcontour/*
 
 build
 build/*
