@@ -199,34 +199,27 @@ class FCTEncoder:
         
         # Step 2: Project clamped anchors to surface using BVH UDF
         if needs_projection.any():
-            # Query UDF with closest point and barycentric coords
+            proj_idx = torch.where(needs_projection)[0]
+
+            # Query UDF only for anchors that need projection
             udf_result = self.bvh.udf(
-                anchors_clamped,
+                anchors_clamped[proj_idx],
                 return_closest=True,
                 return_uvw=True,
                 return_face_ids=True
             )
-            
-            # Get closest surface points
-            closest_points = udf_result.closest_points
-            face_ids = udf_result.face_ids
-            uvw = udf_result.uvw
-            
+
             # Clamp barycentric coords to stay inside triangle (avoid edge artifacts)
-            uvw_clamped = uvw.clamp(min=1e-4, max=1.0 - 1e-4)
+            uvw_clamped = udf_result.uvw.clamp(min=1e-4, max=1.0 - 1e-4)
             uvw_clamped = uvw_clamped / uvw_clamped.sum(dim=-1, keepdim=True)
-            
+
             # Recompute closest point with clamped barycentrics
-            # This ensures the point is strictly inside the triangle
-            triangles = self.bvh.vertices[self.bvh.faces[face_ids.long()]]  # [K, 3, 3]
-            projected = (triangles * uvw_clamped.unsqueeze(-1)).sum(dim=1)  # [K, 3]
-            
-            # Only use projection for anchors that were actually clamped
-            anchors_refined = torch.where(
-                needs_projection.unsqueeze(-1),
-                projected,
-                anchors_clamped
-            )
+            triangles = self.bvh.vertices[self.bvh.faces[udf_result.face_ids.long()]]
+            projected = (triangles * uvw_clamped.unsqueeze(-1)).sum(dim=1)
+
+            # Write back only projected anchors
+            anchors_refined = anchors_clamped.clone()
+            anchors_refined[proj_idx] = projected
         else:
             anchors_refined = anchors_clamped
         
