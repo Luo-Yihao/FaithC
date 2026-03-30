@@ -128,11 +128,14 @@ class FCTEncoder:
         active_voxel_idx = self.octree.ijk_to_cube(active_voxel_ijk)
         
         # Step 3: QEF solve for anchors and normals
+        cell_size = self.octree.get_cell_size(self.octree.max_level)
+        cell_size_scalar = cell_size[0].item()  # uniform grid, all axes equal
         unique_ids, anchors, normals = solve_qef(
             group_ids=clip_data['aabb_ids'],
             points=clip_data['centroids'],
             normals=clip_data['normals'],
             weights=clip_data['areas'],
+            cell_size=cell_size_scalar,
             **solver_weights
         )
         
