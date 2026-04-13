@@ -1,0 +1,26 @@
+[workspace]
+name = "faithcontour"
+version = "1.5.0"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+
+[pypi-options]
+no-build-isolation = ["faithcontour"]
+find-links = [{url = "https://data.pyg.org/whl/torch-2.6.0+cu124.html"}]
+extra-index-urls = ["https://download.pytorch.org/whl/cu124"]
+
+[pypi-dependencies]
+faithcontour = { path = ".", editable = true }
+torch = ">=2.6.0,<2.7"
+torch-scatter = ">=2.1"
+atom3d = { git = "https://github.com/Luo-Yihao/Atom3d.git" }
+numpy = ">=1.24"
+scipy = ">=1.10"
+trimesh = ">=3.0"
+einops = ">=0.6"
+
+[tasks]
+demo = "python demo.py"

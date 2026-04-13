@@ -7,8 +7,8 @@
 
 <p>
   <a href="https://arxiv.org/abs/2511.04029"><img src="https://img.shields.io/badge/arXiv-2511.04029-b31b1b.svg" alt="arXiv"></a>
-  <a href="https://github.com/Luo-Yihao/FaithC"><img src="https://img.shields.io/badge/CVPR-2026-4b44ce.svg" alt="CVPR 2026"></a>
-  <a href="https://creativecommons.org/licenses/by-nc/4.0/"><img src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg" alt="License"></a>
+  <a href="https://github.com/Luo-Yihao/FaithC"><img src="https://img.shields.io/badge/CVPR%202026-Oral-4b44ce.svg" alt="CVPR 2026 Oral"></a>
+  <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
 </p>
 
 [Yihao Luo](https://luo-yihao.github.io/)<sup>1*</sup>,
@@ -36,7 +36,7 @@ Jiaqi Wu<sup>5</sup>,
 
 ## News
 
-- **[2026-03]** 🎉 Accepted to **CVPR 2026**!
+- **[2026-03]** 🎉 Accepted as **Oral** at **CVPR 2026**!
 - **[2026-01]** 🤝 Concurrent work [TRELLIS 2](https://github.com/microsoft/TRELLIS.2) released with [O-Voxel](https://github.com/microsoft/TRELLIS.2/tree/main/o-voxel) representation — great to see the community moving beyond iso-surfaces.
 - **[2025-12]** 🚀 Code fully open-sourced! v1.5 released — pure Python + Atom3d, no C++ compilation required.
 - **[2025-11]** 📄 arXiv preprint and wheel package released.
@@ -61,22 +61,39 @@ Conventional voxel-based mesh representations rely on distance fields (SDF/UDF) 
 ### Requirements
 
 - NVIDIA GPU with CUDA support
-- Python 3.9+
-- PyTorch 2.0+
+- Python 3.10+
+- PyTorch 2.5+
 
-### Setup
+### Quick Start with Pixi (Recommended)
+
+[Pixi](https://pixi.sh) handles all dependencies automatically — one command to install, one to run:
 
 ```bash
-# Create environment
-conda create -n faithc python=3.10
-conda activate faithc
+git clone https://github.com/Luo-Yihao/FaithC.git
+cd FaithC
+pixi run demo
+```
 
-# Install PyTorch (match your CUDA version, example for CUDA 11.8)
-pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 \
-    --index-url https://download.pytorch.org/whl/cu118
+That's it. The first run installs everything (Python, PyTorch, torch-scatter, Atom3d, etc.) and runs the demo. Subsequent runs take ~5 seconds.
+
+<details>
+<summary><b>Install Pixi</b></summary>
+
+```bash
+curl -fsSL https://pixi.sh/install.sh | sh
+```
+
+</details>
+
+### Manual Setup
+
+```bash
+# Install PyTorch (match your CUDA version, example for CUDA 12.4)
+pip install torch --index-url https://download.pytorch.org/whl/cu124
 
 # Install torch_scatter
-pip install torch_scatter -f https://data.pyg.org/whl/torch-2.4.1+cu118.html
+pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv \
+    -f https://data.pyg.org/whl/torch-2.5.1+cu124.html
 
 # Install Atom3d (geometry backend)
 pip install git+https://github.com/Luo-Yihao/Atom3d.git --no-build-isolation
@@ -218,7 +235,7 @@ If you find this work useful, please cite:
 
 ## License
 
-This project is licensed under the [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) License.
+This project is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
 
 ## Contact
