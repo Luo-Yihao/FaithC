@@ -727,15 +727,23 @@ std::vector<at::Tensor> aabb_tri_sat_clip_select_cuda(
         centroids  =torch::zeros({K,3}, opts_f);
         areas      =torch::zeros({K},   opts_f);
         AT_DISPATCH_FLOATING_TYPES(aabbs_min.scalar_type(), "sat_centroid_kernel", [&]{
-            #define LAUNCH_CENTROID(MV) sat_centroid_kernel<scalar_t,MV><<<blocks,threads>>>( \
-                    aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(), \
-                    tris_verts.data_ptr<scalar_t>(), \
-                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(), \
-                    K,(scalar_t)eps, hit_mask.data_ptr<bool>(), \
-                    poly_counts.data_ptr<int>(), centroids.data_ptr<scalar_t>(), areas.data_ptr<scalar_t>(), \
-                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>())
-            if (max_vert==8) { LAUNCH_CENTROID(8); } else { LAUNCH_CENTROID(7); }
-            #undef LAUNCH_CENTROID
+            if (max_vert==8) {
+                sat_centroid_kernel<scalar_t,8><<<blocks,threads>>>(
+                    aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
+                    tris_verts.data_ptr<scalar_t>(),
+                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
+                    poly_counts.data_ptr<int>(), centroids.data_ptr<scalar_t>(), areas.data_ptr<scalar_t>(),
+                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+            } else {
+                sat_centroid_kernel<scalar_t,7><<<blocks,threads>>>(
+                    aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
+                    tris_verts.data_ptr<scalar_t>(),
+                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
+                    poly_counts.data_ptr<int>(), centroids.data_ptr<scalar_t>(), areas.data_ptr<scalar_t>(),
+                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+            }
         });
     } else { // mode == 2
         poly_counts = torch::zeros({K}, opts_i);
@@ -743,18 +751,29 @@ std::vector<at::Tensor> aabb_tri_sat_clip_select_cuda(
         centroids   = torch::zeros({K, 3}, opts_f);
         areas       = torch::zeros({K},     opts_f);
         AT_DISPATCH_FLOATING_TYPES(aabbs_min.scalar_type(), "sat_clip_kernel", [&]{
-            #define LAUNCH_CLIP(MV) sat_clip_kernel<scalar_t,MV><<<blocks,threads>>>( \
-                    aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(), \
-                    tris_verts.data_ptr<scalar_t>(), \
-                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(), \
-                    K,(scalar_t)eps, hit_mask.data_ptr<bool>(), \
-                    poly_counts.data_ptr<int>(), \
-                    poly_verts.data_ptr<scalar_t>(), \
-                    centroids.data_ptr<scalar_t>(), \
-                    areas.data_ptr<scalar_t>(), \
-                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>())
-            if (max_vert==8) { LAUNCH_CLIP(8); } else { LAUNCH_CLIP(7); }
-            #undef LAUNCH_CLIP
+            if (max_vert==8) {
+                sat_clip_kernel<scalar_t,8><<<blocks,threads>>>(
+                    aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
+                    tris_verts.data_ptr<scalar_t>(),
+                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
+                    poly_counts.data_ptr<int>(),
+                    poly_verts.data_ptr<scalar_t>(),
+                    centroids.data_ptr<scalar_t>(),
+                    areas.data_ptr<scalar_t>(),
+                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+            } else {
+                sat_clip_kernel<scalar_t,7><<<blocks,threads>>>(
+                    aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
+                    tris_verts.data_ptr<scalar_t>(),
+                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
+                    poly_counts.data_ptr<int>(),
+                    poly_verts.data_ptr<scalar_t>(),
+                    centroids.data_ptr<scalar_t>(),
+                    areas.data_ptr<scalar_t>(),
+                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+            }
         });
     }
     
