@@ -5,7 +5,10 @@ Provides both standard and differentiable versions.
 """
 
 import torch
-from torch_scatter import scatter_sum, scatter_mean
+try:
+    from torch_scatter import scatter_sum, scatter_mean
+except ImportError:
+    from .torch_scatter_compat import scatter_sum, scatter_mean
 from typing import Tuple, Optional
 
 

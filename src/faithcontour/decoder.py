@@ -9,7 +9,10 @@ from typing import Dict, Tuple, Optional
 from dataclasses import dataclass
 
 from atom3d.grid import OctreeIndexer, CubeGrid
-from torch_scatter import scatter_max
+try:
+    from torch_scatter import scatter_max
+except ImportError:
+    from .torch_scatter_compat import scatter_max
 
 
 @dataclass
