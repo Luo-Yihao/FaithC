@@ -120,7 +120,10 @@ def compute_edge_flux_sign(
     if valid_indices.numel() > 0:
         # For edges with multiple crossings, use the one with minimal |dot|
         # (most perpendicular to the surface)
-        from torch_scatter import scatter_min
+        try:
+            from torch_scatter import scatter_min
+        except ImportError:
+            from .torch_scatter_compat import scatter_min
         
         _, best_idx = scatter_min(dots.abs(), valid_indices, dim_size=E)
         

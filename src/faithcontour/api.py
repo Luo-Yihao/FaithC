@@ -9,7 +9,10 @@ from .ops import (
 from .utils.mesh import *
 import time
 import einops as eins
-from torch_scatter import scatter_mean, scatter_max, scatter_sum, scatter_min, scatter_softmax
+try:
+    from torch_scatter import scatter_mean, scatter_max, scatter_sum, scatter_min, scatter_softmax
+except ImportError:
+    from .torch_scatter_compat import scatter_mean, scatter_max, scatter_sum, scatter_min, scatter_softmax
 import cubvh
 
 @torch.no_grad()

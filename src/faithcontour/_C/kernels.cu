@@ -727,14 +727,23 @@ std::vector<at::Tensor> aabb_tri_sat_clip_select_cuda(
         centroids  =torch::zeros({K,3}, opts_f);
         areas      =torch::zeros({K},   opts_f);
         AT_DISPATCH_FLOATING_TYPES(aabbs_min.scalar_type(), "sat_centroid_kernel", [&]{
-            (max_vert==8 ? sat_centroid_kernel<scalar_t,8> : sat_centroid_kernel<scalar_t,7>)
-                <<<blocks,threads>>>(
+            if (max_vert==8) {
+                sat_centroid_kernel<scalar_t,8><<<blocks,threads>>>(
                     aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
                     tris_verts.data_ptr<scalar_t>(),
                     cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
                     K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
                     poly_counts.data_ptr<int>(), centroids.data_ptr<scalar_t>(), areas.data_ptr<scalar_t>(),
                     out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+            } else {
+                sat_centroid_kernel<scalar_t,7><<<blocks,threads>>>(
+                    aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
+                    tris_verts.data_ptr<scalar_t>(),
+                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
+                    poly_counts.data_ptr<int>(), centroids.data_ptr<scalar_t>(), areas.data_ptr<scalar_t>(),
+                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+            }
         });
     } else { // mode == 2
         poly_counts = torch::zeros({K}, opts_i);
@@ -742,8 +751,8 @@ std::vector<at::Tensor> aabb_tri_sat_clip_select_cuda(
         centroids   = torch::zeros({K, 3}, opts_f);
         areas       = torch::zeros({K},     opts_f);
         AT_DISPATCH_FLOATING_TYPES(aabbs_min.scalar_type(), "sat_clip_kernel", [&]{
-            (max_vert==8 ? sat_clip_kernel<scalar_t,8> : sat_clip_kernel<scalar_t,7>)
-                <<<blocks,threads>>>(
+            if (max_vert==8) {
+                sat_clip_kernel<scalar_t,8><<<blocks,threads>>>(
                     aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
                     tris_verts.data_ptr<scalar_t>(),
                     cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
@@ -753,6 +762,18 @@ std::vector<at::Tensor> aabb_tri_sat_clip_select_cuda(
                     centroids.data_ptr<scalar_t>(),
                     areas.data_ptr<scalar_t>(),
                     out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+            } else {
+                sat_clip_kernel<scalar_t,7><<<blocks,threads>>>(
+                    aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
+                    tris_verts.data_ptr<scalar_t>(),
+                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
+                    poly_counts.data_ptr<int>(),
+                    poly_verts.data_ptr<scalar_t>(),
+                    centroids.data_ptr<scalar_t>(),
+                    areas.data_ptr<scalar_t>(),
+                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+            }
         });
     }
     
