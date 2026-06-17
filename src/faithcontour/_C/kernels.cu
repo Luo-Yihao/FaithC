@@ -42,8 +42,8 @@ __global__ void k_segment_tri_intersection_fused_float(
     int64_t num_segs,
     int64_t num_tris,
     float eps,
-    long* __restrict__ out_seg_indices,
-    long* __restrict__ out_tri_indices,
+    int64_t* __restrict__ out_seg_indices,
+    int64_t* __restrict__ out_tri_indices,
     float* __restrict__ out_dots,
     int* __restrict__ counter)
 {
@@ -168,7 +168,7 @@ std::vector<at::Tensor> segment_tri_intersection_fused_cuda(
         seg_verts.data_ptr<float>(), tris_verts.data_ptr<float>(),
         tri_aabb_min.data_ptr<float>(), tri_aabb_max.data_ptr<float>(),
         num_segs, num_tris, static_cast<float>(eps),
-        out_seg_indices.data_ptr<long>(), out_tri_indices.data_ptr<long>(),
+        out_seg_indices.data_ptr<int64_t>(), out_tri_indices.data_ptr<int64_t>(),
         out_dots.data_ptr<float>(), counter.data_ptr<int>());
 
     int final_hit_count = counter.item<int>();
@@ -286,8 +286,8 @@ __global__ void k_gen_candidates_overlap(
     const T* __restrict__ tri_min,  const T* __restrict__ tri_max,
     int64_t Na, int64_t Nt,
     int64_t a_offset, int64_t t_offset,
-    long* __restrict__ cand_a_out, long* __restrict__ cand_t_out,
-    int* __restrict__ counter, unsigned char* __restrict__ overflow, long cap, T eps)
+    int64_t* __restrict__ cand_a_out, int64_t* __restrict__ cand_t_out,
+    int* __restrict__ counter, unsigned char* __restrict__ overflow, int64_t cap, T eps)
 {
     int ai = blockIdx.x * blockDim.x + threadIdx.x;
     int ti = blockIdx.y * blockDim.y + threadIdx.y;
@@ -304,9 +304,9 @@ __global__ void k_gen_candidates_overlap(
     if (!ov) return;
 
     int idx = atomicAdd(counter, 1);
-    if ((long)idx >= cap){ *overflow = 1; return; }
-    cand_a_out[idx] = (long)(a_offset + ai);
-    cand_t_out[idx] = (long)(t_offset + ti);
+    if ((int64_t)idx >= cap){ *overflow = 1; return; }
+    cand_a_out[idx] = (int64_t)(a_offset + ai);
+    cand_t_out[idx] = (int64_t)(t_offset + ti);
 }
 
 void gen_candidates_overlap_cuda(
@@ -326,9 +326,9 @@ void gen_candidates_overlap_cuda(
             aabb_min.data_ptr<scalar_t>(), aabb_max.data_ptr<scalar_t>(),
             tri_min.data_ptr<scalar_t>(),  tri_max.data_ptr<scalar_t>(),
             Na, Nt, a_offset, t_offset,
-            cand_a_out.data_ptr<long>(), cand_t_out.data_ptr<long>(),
+            cand_a_out.data_ptr<int64_t>(), cand_t_out.data_ptr<int64_t>(),
             counter.data_ptr<int>(), overflow.data_ptr<unsigned char>(),
-            (long)cand_a_out.size(0),
+            (int64_t)cand_a_out.size(0),
             (scalar_t)eps );
     });
 
@@ -430,9 +430,9 @@ __device__ __forceinline__ int clip_with_plane(const T in_poly[MAXV][3], int in_
 
 // Narrowphase Kernels for aabb_tri_sat_clip_select
 template<typename T>
-__global__ void sat_hit_kernel(const T* __restrict__ aabbs_min, const T* __restrict__ aabbs_max, const T* __restrict__ tris_verts, const long* __restrict__ cand_a, const long* __restrict__ cand_t, int64_t K, T eps, bool* __restrict__ hit_mask, long* __restrict__ out_a_idx, long* __restrict__ out_t_idx) {
+__global__ void sat_hit_kernel(const T* __restrict__ aabbs_min, const T* __restrict__ aabbs_max, const T* __restrict__ tris_verts, const int64_t* __restrict__ cand_a, const int64_t* __restrict__ cand_t, int64_t K, T eps, bool* __restrict__ hit_mask, int64_t* __restrict__ out_a_idx, int64_t* __restrict__ out_t_idx) {
     int k=blockIdx.x*blockDim.x+threadIdx.x; if (k>=K) return;
-    long ai=cand_a[k], ti=cand_t[k];
+    int64_t ai=cand_a[k], ti=cand_t[k];
     const T* bmin=aabbs_min+ai*3; const T* bmax=aabbs_max+ai*3;
     T center[3]={(bmin[0]+bmax[0])*T(0.5),(bmin[1]+bmax[1])*T(0.5),(bmin[2]+bmax[2])*T(0.5)};
     T he[3]={(bmax[0]-bmin[0])*T(0.5),(bmax[1]-bmin[1])*T(0.5),(bmax[2]-bmin[2])*T(0.5)};
@@ -448,21 +448,21 @@ __global__ void sat_centroid_kernel(
     const T* __restrict__ aabbs_min,
     const T* __restrict__ aabbs_max,
     const T* __restrict__ tris_verts,
-    const long* __restrict__ cand_a,
-    const long* __restrict__ cand_t,
+    const int64_t* __restrict__ cand_a,
+    const int64_t* __restrict__ cand_t,
     int64_t K, T eps,
     bool* __restrict__ hit_mask,
     int* __restrict__ poly_counts,
     T* __restrict__ centroids,
     T* __restrict__ areas,
-    long* __restrict__ out_a_idx,
-    long* __restrict__ out_t_idx)
+    int64_t* __restrict__ out_a_idx,
+    int64_t* __restrict__ out_t_idx)
 {
     int k = blockIdx.x * blockDim.x + threadIdx.x;
     if (k >= K) return;
 
-    const long ai = cand_a[k];
-    const long ti = cand_t[k];
+    const int64_t ai = cand_a[k];
+    const int64_t ti = cand_t[k];
     out_a_idx[k] = ai;
     out_t_idx[k] = ti;
 
@@ -564,21 +564,21 @@ template<typename T, int MAXV>
 __global__ void sat_clip_kernel(
     const T* __restrict__ aabbs_min, const T* __restrict__ aabbs_max,
     const T* __restrict__ tris_verts,
-    const long* __restrict__ cand_a, const long* __restrict__ cand_t,
+    const int64_t* __restrict__ cand_a, const int64_t* __restrict__ cand_t,
     int64_t K, T eps,
     bool* __restrict__ hit_mask,
     int* __restrict__ poly_counts,
     T* __restrict__ poly_verts,
     T* __restrict__ centroids,
     T* __restrict__ areas,
-    long* __restrict__ out_a_idx,
-    long* __restrict__ out_t_idx)
+    int64_t* __restrict__ out_a_idx,
+    int64_t* __restrict__ out_t_idx)
 {
     int k = blockIdx.x * blockDim.x + threadIdx.x;
     if (k >= K) return;
 
-    const long ai = cand_a[k];
-    const long ti = cand_t[k];
+    const int64_t ai = cand_a[k];
+    const int64_t ti = cand_t[k];
 
     out_a_idx[k] = ai;
     out_t_idx[k] = ti;
@@ -714,9 +714,9 @@ std::vector<at::Tensor> aabb_tri_sat_clip_select_cuda(
             sat_hit_kernel<scalar_t><<<blocks,threads>>>(
                 aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
                 tris_verts.data_ptr<scalar_t>(),
-                cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                cand_a_idx.data_ptr<int64_t>(), cand_t_idx.data_ptr<int64_t>(),
                 K, (scalar_t)eps, hit_mask.data_ptr<bool>(),
-                out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+                out_a_idx.data_ptr<int64_t>(), out_t_idx.data_ptr<int64_t>());
         });
         poly_counts=torch::empty({0}, opts_i);
         poly_verts =torch::empty({0,0,3}, opts_f);
@@ -731,18 +731,18 @@ std::vector<at::Tensor> aabb_tri_sat_clip_select_cuda(
                 sat_centroid_kernel<scalar_t,8><<<blocks,threads>>>(
                     aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
                     tris_verts.data_ptr<scalar_t>(),
-                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    cand_a_idx.data_ptr<int64_t>(), cand_t_idx.data_ptr<int64_t>(),
                     K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
                     poly_counts.data_ptr<int>(), centroids.data_ptr<scalar_t>(), areas.data_ptr<scalar_t>(),
-                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+                    out_a_idx.data_ptr<int64_t>(), out_t_idx.data_ptr<int64_t>());
             } else {
                 sat_centroid_kernel<scalar_t,7><<<blocks,threads>>>(
                     aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
                     tris_verts.data_ptr<scalar_t>(),
-                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    cand_a_idx.data_ptr<int64_t>(), cand_t_idx.data_ptr<int64_t>(),
                     K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
                     poly_counts.data_ptr<int>(), centroids.data_ptr<scalar_t>(), areas.data_ptr<scalar_t>(),
-                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+                    out_a_idx.data_ptr<int64_t>(), out_t_idx.data_ptr<int64_t>());
             }
         });
     } else { // mode == 2
@@ -755,24 +755,24 @@ std::vector<at::Tensor> aabb_tri_sat_clip_select_cuda(
                 sat_clip_kernel<scalar_t,8><<<blocks,threads>>>(
                     aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
                     tris_verts.data_ptr<scalar_t>(),
-                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    cand_a_idx.data_ptr<int64_t>(), cand_t_idx.data_ptr<int64_t>(),
                     K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
                     poly_counts.data_ptr<int>(),
                     poly_verts.data_ptr<scalar_t>(),
                     centroids.data_ptr<scalar_t>(),
                     areas.data_ptr<scalar_t>(),
-                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+                    out_a_idx.data_ptr<int64_t>(), out_t_idx.data_ptr<int64_t>());
             } else {
                 sat_clip_kernel<scalar_t,7><<<blocks,threads>>>(
                     aabbs_min.data_ptr<scalar_t>(), aabbs_max.data_ptr<scalar_t>(),
                     tris_verts.data_ptr<scalar_t>(),
-                    cand_a_idx.data_ptr<long>(), cand_t_idx.data_ptr<long>(),
+                    cand_a_idx.data_ptr<int64_t>(), cand_t_idx.data_ptr<int64_t>(),
                     K,(scalar_t)eps, hit_mask.data_ptr<bool>(),
                     poly_counts.data_ptr<int>(),
                     poly_verts.data_ptr<scalar_t>(),
                     centroids.data_ptr<scalar_t>(),
                     areas.data_ptr<scalar_t>(),
-                    out_a_idx.data_ptr<long>(), out_t_idx.data_ptr<long>());
+                    out_a_idx.data_ptr<int64_t>(), out_t_idx.data_ptr<int64_t>());
             }
         });
     }
