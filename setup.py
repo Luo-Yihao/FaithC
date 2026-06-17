@@ -6,7 +6,20 @@ import os
 import sys
 
 from setuptools import find_packages, setup
-from torch.utils.cpp_extension import BuildExtension, CUDAExtension
+from torch.utils.cpp_extension import BuildExtension as _BuildExtension, CUDAExtension
+
+
+class BuildExtension(_BuildExtension):
+    def build_extensions(self):
+        # On Windows, PyTorch's BuildExtension adds .cu/.cuh to the MSVC
+        # compiler's _cpp_extensions so the spawn wrapper can route those to
+        # hipcc, but does not add .hip.  The hipify step renames kernels.cu to
+        # kernels.hip before compilation; without .hip in _cpp_extensions the
+        # MSVC compile loop raises "Don't know how to compile *.hip".
+        if sys.platform == "win32" and hasattr(self.compiler, "_cpp_extensions"):
+            if ".hip" not in self.compiler._cpp_extensions:
+                self.compiler._cpp_extensions.append(".hip")
+        super().build_extensions()
 
 _C_DIR = os.path.join("src", "faithcontour", "_C")
 
