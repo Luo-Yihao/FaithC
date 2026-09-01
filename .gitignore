@@ -10,4 +10,7 @@ assets/*.glb
 assets/*.ply
 assets/*.stl
 *.so
+*.so.*
+*.hip
+*.prehip
 src/faithcontour.egg-info/*

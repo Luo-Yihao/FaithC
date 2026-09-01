@@ -107,6 +107,25 @@ pip install -e . --no-build-isolation
 pip install trimesh scipy einops
 ```
 
+<details>
+<summary><b>AMD GPU (ROCm)</b></summary>
+
+The `_C` extension also builds on AMD GPUs with ROCm. Install a ROCm build of PyTorch, then build FaithContour against it; the build hipifies the CUDA sources automatically, so no source changes are needed.
+
+```bash
+# Install PyTorch for ROCm (example for ROCm 7.2)
+pip install torch --index-url https://download.pytorch.org/whl/rocm7.2
+
+# Build FaithContour (set the arch(es) for your GPU, e.g. gfx90a, gfx1100)
+git clone https://github.com/Luo-Yihao/FaithC.git
+cd FaithC
+PYTORCH_ROCM_ARCH=gfx90a pip install -e . --no-build-isolation
+```
+
+If `PYTORCH_ROCM_ARCH` is unset, the build targets the architectures of the GPUs visible on the build host.
+
+</details>
+
 
 ## Quick Start
 
